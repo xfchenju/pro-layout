@@ -133,15 +133,24 @@ const RouteMenu = {
     return <Menu {...dynamicProps}>{menuItems}</Menu>
   },
   methods: {
-    updateMenu () {
-      const routes = this.$route.matched.concat()
-      const { hidden } = this.$route.meta
-      if (routes.length >= 3 && hidden) {
-        routes.pop()
-        this.selectedKeys = [routes[routes.length - 1].path]
+    getSelectKeys: function(routes) {
+      if (routes.length <= 1) return routes[0] ? [routes[0].path] : ['']
+
+      let ans = [''];
+      let lastRoute = routes.pop();
+      // 如果本级路由是隐藏的，往上找
+      if (lastRoute.hidden || lastRoute.meta.hidden) {
+        ans = this.getSelectKeys(routes);
       } else {
-        this.selectedKeys = [routes.pop().path]
+        ans = [lastRoute.path];
       }
+      
+      return ans
+    },
+    updateMenu () {
+      var routes = this.$route.matched.concat();
+      this.selectedKeys = this.getSelectKeys(routes);
+      
       const openKeys = []
       if (this.mode === 'inline') {
         routes.forEach(item => {
